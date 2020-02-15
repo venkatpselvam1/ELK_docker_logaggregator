@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.1
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - LOGSPOUT=ignore
+    ports:
+      - 9200:9200
+      - 9300:9300
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+ 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.3.1
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+ 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.3.1
+    ports:
+      - 5044:5044
+    environment:
+      XPACK_MONITORING_ENABLED: "true"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
